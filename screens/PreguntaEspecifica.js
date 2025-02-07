@@ -11,7 +11,6 @@ export default function PreguntaEspecifica() {
     const navigation = useNavigation();
     const route = useRoute();
     const { id, userId } = route.params; // Recibe el ID pasado desde la navegación
-    
 
     const [pregunta, setPregunta] = useState(null);
     const [respuestas, setRespuestas] = useState([]);
@@ -49,12 +48,10 @@ export default function PreguntaEspecifica() {
     async function crearRespuesta() {        
         try {
             const nuevaRespuestaObj = {
-                
                 idUsuario: userId, 
                 contenido: nuevaRespuesta,
                 Preguntas_idPreguntas: id,
             };
-            
 
             if (!nuevaRespuesta) {
                 alert("Por favor, ingrese una respuesta.");
@@ -77,7 +74,6 @@ export default function PreguntaEspecifica() {
             }
 
             const resultado = await respuesta.json(); // Respuesta del servidor
-            
 
             // Añadir la nueva respuesta a la lista actual
             const respuestaServidor = resultado.respuesta;
@@ -85,7 +81,7 @@ export default function PreguntaEspecifica() {
 
             const respuestaFormateada = {
                 idRespuesta: respuestaServidor.id, // ID devuelto por el servidor
-                idUsuario: respuestaServidor.idUsuario,
+                usuario: respuestaServidor.usuario, // Nombre del usuario
                 contenido: respuestaServidor.contenido,
                 fecha: fecha.toLocaleDateString(), // Formatear la fecha correctamente
                 Preguntas_idPreguntas: respuestaServidor.Preguntas_idPreguntas, // ID de la pregunta
@@ -108,8 +104,10 @@ export default function PreguntaEspecifica() {
             {pregunta ? (
                 <View style={styles.preguntaContainer}>
                     <Text style={styles.titulo}>{pregunta.titulo}</Text>
+                    <Text style={styles.usuario}>{pregunta.usuario}</Text>
                     <Text style={styles.contenido}>{pregunta.contenido}</Text>
-                    <Text style={styles.fecha}>Fecha: {new Date(pregunta.fecha).toLocaleDateString()}</Text>
+                    <Text style={styles.fecha}>{new Date(pregunta.fecha).toLocaleDateString()}</Text>
+                    
                     <TouchableHighlight
                         style={styles.button}
                         underlayColor="#FF9AAD"
@@ -146,7 +144,7 @@ export default function PreguntaEspecifica() {
                 keyExtractor={(item) => item.idRespuesta.toString()}
                 renderItem={({ item }) => (
                     <View style={styles.respuesta}>
-                        <Text style={styles.contenido}>Usuario {item.Usuarios_idUsuario}:</Text>
+                        <Text style={styles.usuario}>{item.usuario}</Text>
                         <Text style={styles.contenido}>{item.contenido}</Text>
                         <Text style={styles.fecha}>Fecha: {item.fecha}</Text>
                     </View>
@@ -204,7 +202,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
         color: '#FF758F',
         fontWeight: 'bold',
-        marginBottom: 8,
+        marginBottom: 5,
     },
     contenido: {
         fontSize: 16,
@@ -214,7 +212,12 @@ const styles = StyleSheet.create({
     fecha: {
         fontSize: 14,
         color: 'gray',
-        
+    },
+    usuario: {
+        fontSize: 14,
+        color: '#FF758F',
+        fontWeight: 'bold',
+        marginBottom: 2,
     },
     respuestasTitulo: {
         fontSize: 18,

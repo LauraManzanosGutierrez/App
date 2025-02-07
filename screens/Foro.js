@@ -22,7 +22,7 @@ export default function Foro() {
 
     // Función para cargar las preguntas desde el servidor
     async function cargarPreguntas() {
-        const url = `${Url.apiUrl}//preguntas`; // Dirección IPv4 del servidor
+        const url = `${Url.apiUrl}/preguntas`; // Dirección IPv4 del servidor
     
         try {
             const respuesta = await fetch(url);
@@ -42,6 +42,7 @@ export default function Foro() {
                     contenido: pregunta.contenido, // Contenido
                     fecha: fechaObj.toLocaleDateString(), // Formato de fecha
                     hora: fechaObj.toLocaleTimeString(), // Formato de hora
+                    usuario: pregunta.usuario // Nombre del usuario o "Anónimo"
                 };
             });
     
@@ -91,7 +92,7 @@ export default function Foro() {
                 contenido: preguntaServidor.contenido,
                 fecha: fecha.toLocaleDateString(),
                 hora: fecha.toLocaleTimeString(),
-                autor: preguntaServidor.autor, // Incluye el autor devuelto
+                usuario: preguntaServidor.autor, // Incluye el autor devuelto
             };
     
             setPreguntas([...preguntas, preguntaFormateada]); // Actualiza la lista
@@ -149,8 +150,10 @@ export default function Foro() {
                             >
                                 
                                 <Text style={styles.tituloPregunta}>{item.titulo}</Text>
+                                <Text style={styles.recordatorioUsuario}>{item.usuario}</Text>
                                 <Text style={styles.recordatorioText}>{item.contenido}</Text>
-                                <Text style={styles.recordatorioText}>{item.fecha}</Text>
+                                <Text style={styles.recordatorioFecha}>{item.fecha}</Text>
+                                
                             </TouchableOpacity>
                         </View>
                     )}
@@ -247,8 +250,17 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#FF758F',
     },
-    tituloPregunta: {
+    recordatorioUsuario: {
         fontSize: 14,
+        color: '#FF758F',
+        fontWeight: 'bold',
+    },
+    recordatorioFecha: {
+        fontSize: 14,
+        color: 'gray',
+    },
+    tituloPregunta: {
+        fontSize: 16,
         color: '#FF758F',
         fontWeight: 'bold',
     },
