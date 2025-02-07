@@ -101,7 +101,7 @@ export default function PreguntasScreen2() {
                 containerStyle={styles.radioGroupHorizontal}
             />
 
-            <Text style={globalStyles.textoBase}>¿Cuánto estrés sientes?</Text>
+            <Text style={globalStyles.textoBase}>¿Cuánto estrés has tenido?</Text>
             <RadioGroup
                 radioButtons={estresOptions}
                 onPress={setEstres}

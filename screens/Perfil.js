@@ -1,4 +1,3 @@
-// filepath: /c:/Users/laura/OneDrive - Universidad Europea Miguel de Cervantes/Universidad/UEMC/4º/TFG/AppTFG/App/screens/Perfil.js
 import { StyleSheet, Text, View, TouchableHighlight, TextInput, TouchableOpacity } from 'react-native'; 
 import Fondo from '../components/FondoPerfil';
 import { globalStyles } from '../styles/globalStyles';
@@ -22,7 +21,10 @@ export default function Perfil() {
         usuario: '',
         nombre: '',
         apellidos: '',
-        email: ''
+        email: '',
+        peso: '',
+        edad: '',
+        altura: ''
     });
 
     useEffect(() => {
@@ -32,7 +34,11 @@ export default function Perfil() {
     const obtenerDatosUsuario = async () => {
         try {
             const response = await axios.get(`${Url.apiUrl}/usuarios/${userId}`);
-            setUserData(response.data.usuario); // Asignar los datos del usuario al estado
+            const usuario = response.data.usuario;
+            // Formatear los datos recibidos
+            usuario.peso = usuario.peso ? usuario.peso.toString() : '';
+            usuario.altura = usuario.altura ? usuario.altura.toString() : '';
+            setUserData(usuario); // Asignar los datos del usuario al estado
         } catch (error) {
             console.error('Error al obtener los datos del usuario:', error);
         }
@@ -145,6 +151,41 @@ export default function Perfil() {
                     onChangeText={(text) => setUserData({ ...userData, email: text })}
                 />
             </View>
+            <View style={styles.rowContainer}>
+                <View style={styles.columnContainer}>
+                    <Text style={styles.label}>Edad:</Text>
+                    <TextInput
+                        style={styles.inputRow}
+                        placeholder="Edad"
+                        placeholderTextColor="#FABDC9"
+                        editable={editable}
+                        value={userData.edad}
+                        onChangeText={(text) => setUserData({ ...userData, edad: text })}
+                    />
+                </View>
+                <View style={styles.columnContainer}>
+                    <Text style={styles.label}>Peso:</Text>
+                    <TextInput
+                        style={styles.inputRow}
+                        placeholder="Peso"
+                        placeholderTextColor="#FABDC9"
+                        editable={editable}
+                        value={userData.peso}
+                        onChangeText={(text) => setUserData({ ...userData, peso: text })}
+                    />
+                </View>
+                <View style={styles.columnContainer}>
+                    <Text style={styles.label}>Altura:</Text>
+                    <TextInput
+                        style={styles.inputRow}
+                        placeholder="Altura"
+                        placeholderTextColor="#FABDC9"
+                        editable={editable}
+                        value={userData.altura}
+                        onChangeText={(text) => setUserData({ ...userData, altura: text })}
+                    />
+                </View>
+            </View>
 
             <View style={styles.row}>
                 <Text style={globalStyles.subtitulo}>Editar claves de acceso</Text>
@@ -191,10 +232,37 @@ const styles = StyleSheet.create({
         borderColor: 'white',
         backgroundColor: 'white',
         borderRadius: 30,
-        marginTop: 30,
+        marginTop: 15,
         paddingHorizontal: 10,
         width: '80%',
         height: 40,
+    },
+    rowContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 10,
+        width: '80%',
+    },
+    columnContainer: {
+        flexDirection: 'column',
+        alignItems: 'center',
+    },
+    label: {
+        fontSize: 14,
+        color: '#FF758F',
+        fontWeight: 'bold',
+        marginBottom: 5,
+    },
+    inputRow: {
+        borderWidth: 1,
+        borderColor: 'white',
+        backgroundColor: 'white',
+        borderRadius: 30,
+        paddingHorizontal: 10,
+        height: 40,
+        color: '#333',
+        fontWeight: 'bold',
+        width: 100,
     },
     input: {
         flex: 1,
