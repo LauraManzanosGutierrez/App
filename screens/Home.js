@@ -11,6 +11,7 @@ import moment from 'moment';  // Para manejar la fecha actual
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Importar AsyncStorage
 import jwt_decode from 'jwt-decode'; // Importar jwt-decode para decodificar el token
 import RadioGroup from 'react-native-radio-buttons-group'; // Importar RadioGroup
+import Url from '../components/Url';
 
 export default function Home() {
     const navigation = useNavigation();
@@ -66,7 +67,7 @@ export default function Home() {
 
     const obtenerDatosUsuarioPeriodo = async () => {
         try {
-            const response = await fetch(`http://192.168.1.137:5000/datosUsuarioPeriodo/${userId}`);
+            const response = await fetch(`${Url.apiUrl}/datosUsuarioPeriodo/${userId}`);
             const data = await response.json();
             if (response.ok) {
                 setUserData(data.usuario);
@@ -93,7 +94,7 @@ export default function Home() {
         };
 
         try {
-            const response = await fetch('http://192.168.1.137:5000/datosUsuario', {
+            const response = await fetch(`${Url.apiUrl}/datosUsuario`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

@@ -49,7 +49,7 @@ export default function PreguntasScreen2() {
     
         try {
             // Enviar datos al servidor Flask para predecir
-            const respuestaPrediccion = await fetch('http://192.168.1.137:5000/predecir', {
+            const respuestaPrediccion = await fetch(`${Url.apiUrl}/predecir`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

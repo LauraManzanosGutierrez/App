@@ -21,17 +21,6 @@ db_config = {
     'database': 'mydb'  # Nombre de la base de datos
 }
 
-# Configuración de la base de datos MongoDB
-mongo_client = MongoClient("mongodb://localhost:27017/")
-mongo_db = mongo_client["TFG"]  # Reemplaza con el nombre de tu base de datos en MongoDB
-usuarios_collection = mongo_db["usuarios"]  # Seleccionar la colección de usuarios
-
-try:
-    mongo_db.command("ping")
-    print("Conexión a MongoDB exitosa")
-except Exception as e:
-    print(f"Error conectando a MongoDB: {e}")
-
 SECRET_KEY = "your_secret_key"
 
 # Conectar a la base de datos
