@@ -5,6 +5,11 @@ from flask_cors import CORS
 from pymongo import MongoClient
 import jwt
 
+import pandas as pd
+import joblib
+from tensorflow import keras
+import os
+
 app = Flask(__name__)
 CORS(app)
 
@@ -80,6 +85,57 @@ def validar_token(token):
         return None
     except jwt.InvalidTokenError:
         return None
+    
+
+def modelo_general(usuario, edad, peso, altura, deporte, estres, sueno):
+    try:
+        # Definir la ruta completa de los modelos
+        model_ciclo_path = r"C:\Users\laura\OneDrive - Universidad Europea Miguel de Cervantes\Universidad\UEMC\4º\TFG\AppTFG\App\entrenamiento\modelo_ciclo.keras"
+        model_periodo_path = r"C:\Users\laura\OneDrive - Universidad Europea Miguel de Cervantes\Universidad\UEMC\4º\TFG\AppTFG\App\entrenamiento\modelo_periodo.keras"
+        scaler_path = r"C:\Users\laura\OneDrive - Universidad Europea Miguel de Cervantes\Universidad\UEMC\4º\TFG\AppTFG\App\entrenamiento\scaler.pkl"
+
+        # Cargar los modelos y el scaler desde las rutas absolutas
+        model_ciclo = keras.models.load_model(model_ciclo_path)
+        model_periodo = keras.models.load_model(model_periodo_path)
+        scaler = joblib.load(scaler_path)
+
+        # Calcular BMI
+        bmi = round(peso / (altura ** 2), 2)
+
+        # Crear un DataFrame con los datos de la usuaria
+        nuevos_datos = pd.DataFrame([[edad, bmi, deporte, estres, sueno]], 
+                                    columns=['Edad', 'BMI', 'Deporte', 'Estres', 'Sueño'])
+
+        # Normalizar los datos con el scaler previamente cargado
+        nuevos_datos_normalizados = scaler.transform(nuevos_datos)
+        print("Valores normalizados de la nueva entrada:", nuevos_datos_normalizados)
+
+        # Realizar la predicción con los modelos
+        pred_ciclo_general = model_ciclo.predict(nuevos_datos_normalizados)
+        pred_periodo_general = model_periodo.predict(nuevos_datos_normalizados)
+
+        carpeta_usuario = rf"C:\Users\laura\OneDrive - Universidad Europea Miguel de Cervantes\Universidad\UEMC\4º\TFG\AppTFG\App\entrenamiento\datosUsuarias\datos{usuario}"
+        if not os.path.exists(carpeta_usuario):
+            os.makedirs(carpeta_usuario)
+
+        # Crear un DataFrame con los datos originales y las predicciones
+        datos_completos = nuevos_datos.copy()
+        datos_completos['duracionCiclo'] = round(float(pred_ciclo_general[0][0]))
+        datos_completos['duracionPeriodo'] = round(float(pred_periodo_general[0][0]))
+
+        # Guardar los datos en un archivo CSV
+        ruta_csv = os.path.join(carpeta_usuario, f"{usuario}.csv")
+        datos_completos.to_csv(ruta_csv, index=False)
+
+        # Devolver las predicciones
+        return {
+            "duracionCiclo": round(float(pred_ciclo_general[0][0]), 0),
+            "duracionPeriodo": round(float(pred_periodo_general[0][0]), 0)
+        }
+    except Exception as e:
+        print(f"Error en modelo_general: {e}")
+        raise
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -252,7 +308,7 @@ def crear_usuario_completo():
     datos_usuario = request.json
 
     # Verificar que los campos necesarios están presentes
-    campos_necesarios = ["usuario", "email", "contraseña", "edad", "peso", "altura", "deporte", "estres", "sueño","fechaUltimoCiclo"]
+    campos_necesarios = ["usuario", "email", "contraseña", "edad", "peso", "altura", "deporte", "estres", "sueño", "fechaUltimoCiclo", "duracionCiclo", "duracionPeriodo"]
     for campo in campos_necesarios:
         if campo not in datos_usuario:
             return jsonify({"error": f"Falta el campo {campo}"}), 400
@@ -267,6 +323,8 @@ def crear_usuario_completo():
     estres = datos_usuario["estres"]
     sueño = datos_usuario["sueño"]
     fechaUltimoCiclo = datos_usuario["fechaUltimoCiclo"]
+    duracionCiclo = datos_usuario["duracionCiclo"]
+    duracionPeriodo = datos_usuario["duracionPeriodo"]
 
     # Validar y convertir altura
     try:
@@ -280,12 +338,12 @@ def crear_usuario_completo():
         return jsonify({"error": f"Error en el cálculo del BMI: {str(e)}"}), 400
 
     query = """
-        INSERT INTO Usuarios (usuario, email, contraseña, edad, peso, altura, BMI, deporte, estres, sueño, fechaUltimoCiclo)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO Usuarios (usuario, email, contraseña, edad, peso, altura, BMI, deporte, estres, sueño, fechaUltimoCiclo, duracionCiclo, duracionPeriodo)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
     try:
         # Ejecutar el query de inserción y obtener el idUsuario generado
-        id_usuario = ejecutar_query(query, (usuario, email, contraseña, edad, peso, altura, bmi, deporte, estres, sueño, fechaUltimoCiclo))
+        id_usuario = ejecutar_query(query, (usuario, email, contraseña, edad, peso, altura, bmi, deporte, estres, sueño, fechaUltimoCiclo, duracionCiclo, duracionPeriodo))
         datos_usuario["idUsuario"] = id_usuario
         datos_usuario["BMI"] = bmi
         return jsonify({"mensaje": "Usuario creado", "usuario": datos_usuario}), 201
@@ -456,7 +514,26 @@ def obtener_datos_usuario_periodo(idUsuario):
     except Exception as e:
         return jsonify({"error": f"Error al obtener los datos del usuario: {str(e)}"}), 500
 
-    
+@app.route('/predecir', methods=['POST'])
+def predecir():
+    try:
+        # Obtener datos del cuerpo de la solicitud
+        data = request.json
+        usuario = data['usuario']
+        edad = data['edad']
+        peso = data['peso']
+        altura = data['altura']
+        deporte = data['deporte']
+        estres = data['estres']
+        sueño = data['sueño']
+
+        # Ejecutar el modelo
+        resultado = modelo_general(usuario, edad, peso, altura, deporte, estres, sueño)
+
+        # Devolver el resultado
+        return jsonify(resultado), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500    
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000, host="0.0.0.0")

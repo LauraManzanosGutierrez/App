@@ -80,13 +80,12 @@ def calcular_ajuste_periodo(edad, bmi, estres, sueño, deporte):
 # Generar dataset
 dataset = generar_datos_usuarios_corregido_v6(50000)
 
-# Guardar el dataset
-carpeta_salida = "C:\\Users\\laura\\OneDrive - Universidad Europea Miguel de Cervantes\\Universidad\\UEMC\\4º\\TFG\\Foro\\excels"
+# Guardar el dataset en un único archivo CSV
+carpeta_salida = "C:\\Users\\laura\\OneDrive - Universidad Europea Miguel de Cervantes\\Universidad\\UEMC\\4º\\TFG\\AppTFG\\App\\entrenamiento\\datasets"
 os.makedirs(carpeta_salida, exist_ok=True)
 
-for columna in dataset.columns:
-    ruta_archivo = os.path.join(carpeta_salida, f"{columna}.csv")
-    dataset[[columna]].to_csv(ruta_archivo, index=False)
-    print(f"Archivo guardado: {ruta_archivo}")
+ruta_archivo = os.path.join(carpeta_salida, "dataset50000.csv")
+dataset.to_csv(ruta_archivo, index=False)
 
+print(f"Archivo guardado: {ruta_archivo}")
 print(dataset.head())

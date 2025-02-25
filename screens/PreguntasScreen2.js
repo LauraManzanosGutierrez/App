@@ -41,30 +41,54 @@ export default function PreguntasScreen2() {
             edad: parseInt(edad),
             peso: parseFloat(peso),
             altura: parseFloat(altura),
-            fechaUltimoCiclo, 
+            fechaUltimoCiclo,
             deporte: parseInt(deporte),
             estres: parseInt(estres),
             sueño: parseInt(sueno),
         };
-
-        // Verificar el contenido de fechaUltimoCiclo
-        
-
+    
         try {
-            const respuesta = await fetch(`${Url.apiUrl}/usuarios`, {
+            // Enviar datos al servidor Flask para predecir
+            const respuestaPrediccion = await fetch('http://192.168.1.137:5000/predecir', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    usuario: usuarioCompleto.usuario,
+                    edad: usuarioCompleto.edad,
+                    peso: usuarioCompleto.peso,
+                    altura: usuarioCompleto.altura,
+                    deporte: usuarioCompleto.deporte,
+                    estres: usuarioCompleto.estres,
+                    sueño: usuarioCompleto.sueño,
+                }),
+            });
+    
+            if (!respuestaPrediccion.ok) {
+                throw new Error(`Error en la predicción: ${respuestaPrediccion.status} - ${respuestaPrediccion.statusText}`);
+            }
+    
+            const predicciones = await respuestaPrediccion.json();
+    
+            // Agregar las predicciones al objeto usuarioCompleto
+            usuarioCompleto.duracionCiclo = predicciones.duracionCiclo;
+            usuarioCompleto.duracionPeriodo = predicciones.duracionPeriodo;
+    
+            // Enviar los datos completos al servidor de usuarios
+            const respuestaUsuario = await fetch(`${Url.apiUrl}/usuarios`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(usuarioCompleto),
             });
-
-            if (!respuesta.ok) {
-                throw new Error(`Error en la petición: ${respuesta.status} - ${respuesta.statusText}`);
+    
+            if (!respuestaUsuario.ok) {
+                throw new Error(`Error en la petición: ${respuestaUsuario.status} - ${respuestaUsuario.statusText}`);
             }
-
-            const resultado = await respuesta.json();
-            
+    
+            const resultado = await respuestaUsuario.json();
             navigation.navigate('LoginScreen');
         } catch (error) {
             console.error('ERROR', error);
